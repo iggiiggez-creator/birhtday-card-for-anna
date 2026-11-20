@@ -24,7 +24,6 @@
     50%  { background-position: 100% 50%; }
     100% { background-position: 0% 50%; }
   }
-  /* Мягкое световое пятно для объёма */
   body::before {
     content: '';
     position: fixed; inset: 0;
@@ -61,7 +60,8 @@
     touch-action: none; overflow: hidden;
   }
   #card {
-    width: min(90vw, calc(90vh * 1.4133), 595px);
+    /* размер подстраивается из JS по реальным пропорциям картинки */
+    width: min(90vw, 595px);
     aspect-ratio: 595 / 421;
     position: relative;
     transform-style: preserve-3d;
@@ -78,11 +78,12 @@
       0 12px 30px rgba(0, 0, 0, 0.22),
       0 0 0 3px rgba(255, 255, 255, 0.7),
       0 0 0 4px rgba(255, 255, 255, 0.25);
+    overflow: hidden;
   }
   .face img {
     width: 100%; height: 100%;
     display: block;
-    object-fit: cover;
+    object-fit: contain;      /* ← картинка видна целиком, без обрезки */
     border-radius: 16px;
     pointer-events: none;
     -webkit-user-drag: none;
@@ -314,6 +315,22 @@
       else canvas.remove();
     }
     requestAnimationFrame(animate);
+  }
+
+  // 🎯 Авто-подстройка карточки под реальные пропорции картинки
+  const frontImg = document.querySelector('#front-face img');
+  function fitCardToImage() {
+    const w = frontImg.naturalWidth;
+    const h = frontImg.naturalHeight;
+    if (!w || !h) return;
+    const ratio = w / h;
+    card.style.aspectRatio = ratio;
+    card.style.width = `min(90vw, calc(85vh * ${ratio}), ${w}px)`;
+  }
+  if (frontImg.complete && frontImg.naturalWidth) {
+    fitCardToImage();
+  } else {
+    frontImg.addEventListener('load', fitCardToImage);
   }
 
   // Init
